@@ -1,56 +1,55 @@
-(* parser.mly *)
+%{
+    open Ast
+    open List
+%}
+// %token <string> LPAREN RPAREN LSQUARE RSQUARE COMMA DOT ASSIGN VAR CONST FUNC INT EOF
 
-%token <string> VAR CONST FUNC PRED
-%token LPAREN RPAREN COMMA DOT EOF 
+%token <string> VAR CONST FUNC PRED 
+%token <int> INT
+%token LPAREN RPAREN COMMA DOT EOF RSQUARE LSQUARE ASSIGN
 
 %start program
-%type <Ast.clause list * Ast.goal> program
-%type <Ast.clause list> clause_list
+%type <Ast.clause_list> program
 %type <Ast.atomic_formula list> atomic_formula_list
-%type <Ast.clause> clause
-%type <Ast.goal> goal
-%type <Ast.atomic_formula > atomic_formula
-%type <Ast.term list> term_list
-%type <Ast.term> term
-%type <Ast.fact> fact
-%type <Ast.rule> rule
-
 
 %%
 
 program:
-  | clause_list goal EOF { ($1, $2) }
+   clause_list EOF { Clause_list ($1) }
 
 clause_list:
-  | clause { [$1] }
-  | clause_list clause { $2 :: $1 }
+    clause DOT{[$1] }
+  | clause_list clause DOT { $2 :: $1 }
   
-atomic_formula_list:
-  | atomic_formula {[$1]}
-  | atomic_formula_list atomic_formula {$2 :: $1} 
 clause:
-  | fact { Fact $1 }
-  | rule { Rule $1 }
+    fact { Fact ($1) }
+  | rule { Rule ($1) }
 
 fact:
-  | atomic_formula DOT { $1 }
+    atomic_formula  { Fact ($1) }
 
 rule:
-  | atomic_formula LPAREN atomic_formula_list RPAREN DOT { $1, $3 }
+    atomic_formula ASSIGN atomic_formula_list  { Rule ($1, $3) }
 
 atomic_formula:
-  | PRED LPAREN term_list RPAREN { ($1, $3) }
+    FUNC LPAREN term_list RPAREN { Atm_form ($1, $3) }
+
+atomic_formula_list:
+    atomic_formula {[$1]}
+  | atomic_formula COMMA atomic_formula_list {$1 :: $3} 
 
 term_list:
-  | term { [$1] }
-  | term_list COMMA term { $3 :: $1 }
+    term {[$1] }
+  | term COMMA term_list { $1 :: $3 }
 
 term:
-  | VAR { Var $1 }
+    VAR {Var ($1) }
   | CONST { Const $1 }
-  | FUNC LPAREN term_list RPAREN { Func ($1, $3) }
+  | INT  {Int $1}
+  | FUNC LPAREN term_list RPAREN {Func ($1, $3) }
+  | LSQUARE RSQUARE { Empty }
+  | LSQUARE term RSQUARE { Non_Empty }
 
 goal:
-  | { [] }
-  | atomic_formula { [$1] }
-  | goal COMMA atomic_formula { $3 :: $1 }
+    atomic_formula { Goal [$1] }
+  | goal COMMA atomic_formula { match $1 with Goal lst -> Goal ($3 :: lst) }
