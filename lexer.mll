@@ -3,26 +3,32 @@
 {
   open Parser
 }
+(* ocamlyacc -v  parser.mly 
+    export OCAMLRUNPARAM='p'
+*)
 
 let digit = ['0' - '9']
-let letter = ['a' - 'z' 'A' - 'Z']
+let int = '-'? digit+
+let letter = ['a' - 'z' 'A' - 'Z'] 
 let alphanumeric = digit | letter
-let variable = ('_' | letter) (alphanumeric | '_')*
-let constant = letter (alphanumeric | '_')*
-let functor_symbol = letter (alphanumeric | '_')*
+let variable = ('_'|['A'-'Z']) (alphanumeric | '_')*
+let constant = "\"" letter (alphanumeric | '_')* "\""
+let functor_symbol = ['a' - 'z' ] (alphanumeric | '_')*
 let predicate_symbol = letter (alphanumeric | '_')*
 
-exception Lexical_error of string  (* Define Lexical_error exception *)
-
 rule token = parse
-  | [' ' '\t' '\n']  { token lexbuf }         (* Skip whitespace *)
+  | [' ' '\t' '\n']+  { token lexbuf }         (* Skip whitespace *)
   | '('               { LPAREN }
   | ')'               { RPAREN }
+  | '['               { LSQUARE }
+  | ']'               { RSQUARE }
   | ','               { COMMA }
   | '.'               { DOT }
+  | ":-"              { ASSIGN }
   | variable as v     { VAR v }
+  | int as i          { INT (int_of_string(i))}
   | constant as c     { CONST c }
   | functor_symbol as f { FUNC f }
-  | predicate_symbol as p { PRED p }
+  (* | predicate_symbol as p { PRED p } *)
   | eof               { EOF }
   | _                 { failwith ("Unexpected character: " ^ Lexing.lexeme lexbuf) }
