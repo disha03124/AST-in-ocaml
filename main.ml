@@ -22,7 +22,7 @@ let parse_string input =
   | Exit -> failwith "Parsing failed"  (* Removed () argument *)
 
 (* Sample input *)
-let input = " hello(H,as):-  hii(True).\n fun(9). \n ?-fun(10)."
+let input = " hello(H,as):-  hii(True).\n fun(9,). \n ?-fun(10)."
 
 (* Parse the input *)
 let clauses = parse_string input
