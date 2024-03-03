@@ -2,6 +2,7 @@
 
 {
   open Parser
+  open Lexing
 }
 (* ocamlyacc -v  parser.mly 
     export OCAMLRUNPARAM='p'
@@ -18,7 +19,8 @@ let predicate_symbol = letter (alphanumeric | '_')*
 (* let identifier = ('_'|['a'-'z']) (alphanumeric | '_')* *)
 
 rule token = parse
-  | [' ' '\t' '\n']+  { token lexbuf }         (* Skip whitespace *)
+  | [' ' '\t']+  { token lexbuf }         (* Skip whitespace *)
+  | ['\n']+          {Lexing.new_line lexbuf; token lexbuf}
   | '('               { LPAREN }
   | ')'               { RPAREN }
   | '['               { LSQUARE }
