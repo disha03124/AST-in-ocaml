@@ -25,11 +25,12 @@ rule token = parse
   | ')'               { RPAREN }
   | '['               { LSQUARE }
   | ']'               { RSQUARE }
+  | '|'               {PIPE}
   | ','               { COMMA }
   | '_'               {UNDERSCORE '_'}
   | '.'               { DOT }
   | ":-"              { ASSIGN }
-  | "fail"             {KEYWORD "fail"}
+  | "fail"             { KEYWORD "fail"}
   | "intT"             {KEYWORD "intT" }
   | "boolT"             {KEYWORD "boolT"}
   | "list"             {KEYWORD "list"}
