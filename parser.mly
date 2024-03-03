@@ -7,8 +7,8 @@
 
 %token <string> VAR CONST FUNC PRED KEYWORD 
 %token <int> INT
-%token<char> CUT UNDERSCORE
-%token LPAREN RPAREN COMMA DOT EOF RSQUARE LSQUARE ASSIGN GOAL  PIPE
+%token<char> CUT UNDERSCORE EQUAL  
+%token LPAREN RPAREN COMMA DOT EOF RSQUARE LSQUARE ASSIGN GOAL  PIPE SEMICOLON COLON
 
 %start program
 %type <Ast.clause_list> program
@@ -41,28 +41,44 @@ atomic_formula:
     FUNC LPAREN term_list RPAREN { Atm_form ($1, $3) }
     | CUT {Cut($1)}
     | KEYWORD {Key_word ($1)}
+    | FUNC {Identifier ($1)}
+    | VAR {Var($1)}
+    | LSQUARE term PIPE term RSQUARE {Non_Empty}
+    | atomic_formula EQUAL atomic_formula {Non_Empty}
+    | atomic_formula SEMICOLON atomic_formula {Non_Empty}
+    // | EQUAL {Printf.printf "Identified correct "; Equal($1)}
+    // | SEMICOLON {Semicolon($1)}
     
 
 atomic_formula_list:
     atomic_formula { [$1]}
   | atomic_formula COMMA atomic_formula_list {$1 :: $3} 
+  | atomic_formula SEMICOLON atomic_formula_list {$1 :: $3} 
 
 term_list:
     term {[$1] }
   | term COMMA term_list {$1 :: $3 }
+  | term SEMICOLON term_list {$1 :: $3 }
 
 term:
-    VAR {  Var ($1) }
+    VAR { Var ($1) }
   | CONST { Const ($1) }
   | INT  { Int ($1)}
   | FUNC LPAREN term_list RPAREN {Func ($1, $3) }
   | LSQUARE RSQUARE {Empty }
   | LSQUARE term RSQUARE { Non_Empty }
+  | LPAREN term RPAREN { Non_Empty }
   | LSQUARE term PIPE term RSQUARE { Non_Empty }
+  | term EQUAL term {Non_Empty}
+  | term SEMICOLON term {Non_Empty}
   // | LSQUARE term PIPE UNDERSCORE RSQUARE { Non_Empty }
   | UNDERSCORE {Underscore($1) }
   | FUNC {Identifier ($1)}
   | term COMMA term      {MoreTerm ($1 , $3)}
+  
+  | KEYWORD {Key_word($1)}
+  // | EQUAL {Printf.printf "Identified correct "; Equal($1)}
+  // | SEMICOLON {Semicolon($1)}
 
 goal:
     GOAL atomic_formula {[$2] }
